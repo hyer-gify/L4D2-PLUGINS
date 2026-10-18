@@ -33,7 +33,7 @@
 
 **启动后自动退出 / 崩溃怎么排查**
 
-最省事的办法：把 `server-scripts/start_debug.sh` 放到服务器根目录，运行 `chmod +x start_debug.sh && ./start_debug.sh`。它会检查系统版本、GLIBC、32 位运行库、插件缺少的系统库，启动服务器一次并记录退出原因（装了 `gdb` 时还会记录崩溃位置），全部写进 `debug_<时间>.log`。服务器没退出就按 Ctrl+C。端口、地图和 tickrate 会自动从同目录的 `start.sh` 读取。日志里不含 server.cfg 和 rcon 密码。
+最省事的办法：把 `server-scripts/start_debug.sh` 放到服务器根目录，运行 `chmod +x start_debug.sh && ./start_debug.sh`。它会检查系统版本、GLIBC、32 位运行库、插件缺少的系统库、端口占用，然后启动服务器两次（先临时关闭所有插件，再正常加载插件），每次 60 秒后自动停止。装了 `gdb` 时会记录服务器停在哪里、崩在哪里。结果全部写进 `debug_<时间>.log`。端口、地图和 tickrate 会自动从同目录的 `start.sh` 读取。日志里不含 server.cfg，启动参数里的密码会被隐藏。
 
 手动排查：
 
