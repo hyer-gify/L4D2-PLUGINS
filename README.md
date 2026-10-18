@@ -117,7 +117,9 @@
 
 **关于 Anne 和 AST**：完整的 AnneHappy 是一整套对抗改战役的服务器包（基于 confogl 和 `coop_base_versus`，400 多个插件，并依赖 MySQL），没法和本插件包混装。这里只取了它的 AI 插件，刷特改用 fdxx 的 l4d2_si_spawn_control，所以叫"Anne 风格"。想要原汁原味的 Anne，请单独开一台服务器装 [CompetitiveWithAnne 的 Release 包](https://github.com/fantasylidong/CompetitiveWithAnne/releases)（选 `nomysql` 版本）。"AST" 药役在 GitHub 上没有找到公开源码，药役（普通 / 硬核）两个模式是按常见药役规则配置的。
 
-改动说明：`ai_tank_new.sp` 原本依赖 Anne 刷特插件的 `l4d_infected_limit`，找不到时会直接报错；已改为依次回退到 `l4d2_si_spawn_control_max_specials`，再回退到新建的 `ai_tank_si_limit`。`cfg/AI_HardSI/aggressive_ai.cfg` 把 `sm_cvar` 换成了 `sm_mode_cvar`，切回原版时这些官方 cvar 会被还原。两处都在文件里加了注释。
+改动说明：`ai_tank_new.sp` 原本依赖 Anne 刷特插件的 `l4d_infected_limit`，找不到时会直接报错；已改为依次回退到 `l4d2_si_spawn_control_max_specials`，再回退到新建的 `ai_tank_si_limit`。`cfg/AI_HardSI/aggressive_ai.cfg` 把 `sm_cvar` 换成了 `sm_mode_cvar`，切回原版时这些官方 cvar 会被还原。`l4d2_si_spawn_control.sp` 增加了两处：用游戏的 `player_spawn` 事件记录特感出生时间（原来只靠 left4dhooks 的回调，地图中途加载时收不到，新特感会被当成“摸鱼”立刻处死）；地图中途加载时接上当前回合的状态。这些改动都在文件里加了注释。
+
+模式切换插件在地图中途加载插件后，会执行一次 `sm_l4dd_reload`，让 left4dhooks 马上给新插件打开回调，不用等到下一张图。
 
 ## fun：娱乐模块
 

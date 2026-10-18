@@ -288,11 +288,20 @@ void LoadModePlugins(const char[] mode)
 {
 	char list[32][PLATFORM_MAX_PATH];
 	int count = GetModePlugins(mode, list, sizeof(list), sizeof(list[]));
+	bool loaded = false;
 	for (int i = 0; i < count; i++)
 	{
 		if (list[i][0] != '\0' && FindPluginByFile(list[i]) == null)
+		{
 			ServerCommand("sm plugins load \"%s\"", list[i]);
+			loaded = true;
+		}
 	}
+
+	// left4dhooks 只在地图开始时检查哪些插件用到了它的回调（L4D_OnSpawnSpecial 等），
+	// 地图中途加载的插件要让它重新检查一次，否则这些回调到下一张图才会生效。
+	if (loaded && CommandExists("sm_l4dd_reload"))
+		ServerCommand("sm_l4dd_reload");
 }
 
 void UnloadModePlugins(const char[] oldMode, const char[] newMode)

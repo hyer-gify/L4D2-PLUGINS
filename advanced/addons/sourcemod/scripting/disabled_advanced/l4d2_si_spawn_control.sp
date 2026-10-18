@@ -78,6 +78,7 @@ float
 bool
 	g_bBlockSpawn,
 	g_bCanSpawn,
+	g_bLateLoad,
 	g_bFinalMap,
 	g_bLeftSafeArea,
 	g_bMark[MAXPLAYERS+1],
@@ -262,8 +263,38 @@ public void OnPluginStart()
 
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
 	HookEvent("player_left_safe_area", Event_PlayerLeftSafeArea, EventHookMode_PostNoCopy);
+	// [L4D2-PLUGINS] Record the spawn time from the game event too. L4D_OnSpawnSpecial_Post only fires
+	// once left4dhooks has enabled that detour, which it does on map start, so a plugin loaded mid-map
+	// (by the mode switcher) never saw it and KillSICheck_Timer killed every new SI within a second.
+	HookEvent("player_spawn", Event_PlayerSpawn);
 
 	CreateTimer(1.0, KillSICheck_Timer, _, TIMER_REPEAT);
+
+	// [L4D2-PLUGINS] Loaded mid-round: hook the clients already in game and pick up the round state.
+	if (g_bLateLoad)
+	{
+		float fEngineTime = GetEngineTime();
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			g_fSpecialActionTime[i] = fEngineTime;
+			if (IsClientInGame(i))
+				OnClientPutInServer(i);
+		}
+
+		g_fNearestSpawnRange = L4D2_GetScriptValueFloat("ZombieDiscardRange", z_discard_range.FloatValue);
+		if (L4D_HasAnySurvivorLeftSafeArea())
+		{
+			g_bLeftSafeArea = true;
+			g_hSpawnTimer[SPAWN_MAX_PRE] = CreateTimer(g_fFirstSpawnTime, SpawnSpecial_Timer, SPAWN_MAX_PRE);
+		}
+	}
+}
+
+void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	if (client > 0)
+		g_fSpecialActionTime[client] = GetEngineTime();
 }
 
 void ConVarChanged_BlockSpawn(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -966,6 +997,7 @@ void Init()
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
+	g_bLateLoad = late;
 	RegPluginLibrary("l4d2_si_spawn_control");
 	return APLRes_Success;
 }
