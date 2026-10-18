@@ -35,6 +35,8 @@
 
 最省事的办法：把 `server-scripts/start_debug.sh` 放到服务器根目录，运行 `chmod +x start_debug.sh && ./start_debug.sh`。它会检查系统版本、GLIBC、32 位运行库、插件缺少的系统库、端口占用，然后启动服务器两次（先临时关闭所有插件，再正常加载插件），每次 60 秒后自动停止。装了 `gdb` 时会记录服务器停在哪里、崩在哪里。结果全部写进 `debug_<时间>.log`。端口、地图和 tickrate 会自动从同目录的 `start.sh` 读取。日志里不含 server.cfg，启动参数里的密码会被隐藏。
 
+**停在 `Network: IP ...` 这一行、地图不加载、进不去**：看前面有没有 `exec: couldn't exec valve.rc`。启动参数里的 `+map`、`+exec` 是由 `left4dead2/cfg/valve.rc` 里的 `stuffcmds` 执行的，这个文件丢了，服务器会一直空转、不加载地图。`start.sh`、`start.bat` 和 `start_debug.sh` 发现它不在时会自动补上；也可以用 steamcmd 执行 `app_update 222860 validate` 恢复。复制插件包时 `cfg` 文件夹要合并，不要整个替换。
+
 手动排查：
 
 1. 把 `left4dead2/addons/metamod.vdf` 改名为 `metamod.vdf.bak` 再启动，这样 MetaMod、SourceMod 和所有插件都不会加载。

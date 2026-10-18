@@ -63,6 +63,12 @@ for f in "$GAME"/addons/*.vdf.debug_off; do
 	[ -f "$f" ] && mv -n "$f" "${f%.debug_off}"
 done
 
+# 启动参数里的 +map、+exec 由 cfg/valve.rc 里的 stuffcmds 执行，文件丢了地图不会加载，先补上
+VALVE_RC_CREATED=0
+if [ ! -f "$GAME/cfg/valve.rc" ]; then
+	mkdir -p "$GAME/cfg" && printf 'exec autoexec.cfg\nstuffcmds\n' > "$GAME/cfg/valve.rc" && VALVE_RC_CREATED=1
+fi
+
 TMPD=$(mktemp -d "$ROOT/.debug_tmp_XXXXXX")
 DISABLED=()
 restore_addons() {
@@ -128,6 +134,14 @@ export LD_LIBRARY_PATH="$ROOT:$ROOT/bin:$LD_LIBRARY_PATH"
 
 	section "游戏版本 left4dead2/steam.inf"
 	cat "$GAME/steam.inf" 2>/dev/null || echo "（没有 steam.inf）"
+
+	section "启动配置 left4dead2/cfg/valve.rc"
+	echo "cfg 目录里的文件: $(ls "$GAME/cfg" 2>/dev/null | tr '\n' ' ')"
+	if [ "$VALVE_RC_CREATED" = 1 ]; then
+		echo "!! 原来没有 valve.rc，已自动补上。没有它，启动参数里的 +map、+exec 不会执行，服务器不会加载地图。"
+	fi
+	cat "$GAME/cfg/valve.rc" 2>/dev/null
+	grep -q '^[[:space:]]*stuffcmds' "$GAME/cfg/valve.rc" 2>/dev/null || echo "!! valve.rc 里没有 stuffcmds，启动参数里的 +map、+exec 不会执行"
 
 	section "正在运行的 L4D2 服务器"
 	found=0
