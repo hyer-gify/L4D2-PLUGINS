@@ -27,9 +27,17 @@
    换成你自己的 SteamID（进服后控制台输入 `status` 可以看到）。
 5. 用 `server-scripts/` 里的启动脚本启动（放到 `srcds_run` / `srcds.exe` 所在的服务器根目录）。关键启动参数：
    ```
-   -game left4dead2 -tickrate 100 +map c1m1_hotel +exec server.cfg
+   -game left4dead2 -ip 0.0.0.0 -tickrate 100 +map c1m1_hotel +exec server.cfg
    ```
 6. 进服后控制台输入 `sm plugins list` 和 `meta list`，确认插件都在运行。
+
+**启动后自动退出 / 崩溃怎么排查**
+
+1. 把 `left4dead2/addons/metamod.vdf` 改名为 `metamod.vdf.bak` 再启动，这样 MetaMod、SourceMod 和所有插件都不会加载。
+   * 这样能正常启动：问题在插件包里，把文件名改回来，看下一步。
+   * 这样还是退出：问题在服务器本体或启动参数，先用 steamcmd 执行 `app_update 222860 validate` 修复游戏文件。
+2. 看 `left4dead2/addons/sourcemod/logs/` 下最新的 `errors_*.log` 和 `L*.log`。
+3. 启动参数加 `-debug`，崩溃时会在服务器根目录生成 `debug.log`。
 
 **Linux 注意**：Actions 扩展需要 GLIBC 2.35 以上，也就是 Ubuntu 22.04 / Debian 12 或更新的系统（用 `ldd --version` 查看）。l4dtoolz 和 tickrate_enabler 用的是官方的 `oldlinux` 构建（GLIBC 2.34），兼容性更好。Windows 服务器没有这个限制。
 
