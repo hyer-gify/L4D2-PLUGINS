@@ -143,6 +143,14 @@ export LD_LIBRARY_PATH="$ROOT:$ROOT/bin:$LD_LIBRARY_PATH"
 	cat "$GAME/cfg/valve.rc" 2>/dev/null
 	grep -q '^[[:space:]]*stuffcmds' "$GAME/cfg/valve.rc" 2>/dev/null || echo "!! valve.rc 里没有 stuffcmds，启动参数里的 +map、+exec 不会执行"
 
+	section "cfg 文件里的中文（非 ASCII 字符会把命令拆散）"
+	bad=0
+	while IFS= read -r f; do
+		n=$(LC_ALL=C grep -c $'[^ -~\t\r]' "$f" 2>/dev/null)
+		[ "${n:-0}" -gt 0 ] && { bad=1; echo "${f#"$GAME"/}: $n 行"; }
+	done < <(find "$GAME/cfg" -maxdepth 1 -name '*.cfg' 2>/dev/null | sort)
+	[ $bad -eq 0 ] && echo "cfg 目录下的 .cfg 都是纯 ASCII"
+
 	section "正在运行的 L4D2 服务器"
 	found=0
 	for p in $(pgrep -x srcds_linux 2>/dev/null); do
@@ -172,6 +180,9 @@ export LD_LIBRARY_PATH="$ROOT:$ROOT/bin:$LD_LIBRARY_PATH"
 		cat "$f"
 		echo
 	done
+	if [ -d "$GAME/addons/sourcemod" ] && [ ! -f "$GAME/addons/metamod/sourcemod.vdf" ]; then
+		echo "!! 有 addons/sourcemod，但没有 addons/metamod/sourcemod.vdf：MetaMod 不会加载 SourceMod，所有 SourceMod 插件都不会运行"
+	fi
 	echo "--- addons/metamod/metaplugins.ini（非注释行）"
 	grep -v '^[[:space:]]*;' "$GAME/addons/metamod/metaplugins.ini" 2>/dev/null | grep -v '^[[:space:]]*$'
 

@@ -19,7 +19,8 @@
 
 1. 关掉服务器。
 2. 依次把 `core/`、`basic/`、`advanced/`、`fun/` **里面的内容**复制到服务器的 `left4dead2/` 目录（同名文件夹合并，提示覆盖时选覆盖）。不需要的模块不复制即可，`core` 必须装。
-3. 打开 `left4dead2/cfg/server.cfg`，改服务器名和 `rcon_password`。
+3. 打开 `left4dead2/cfg/server.cfg`，改 `rcon_password`。服务器名（可以写中文）改 `left4dead2/addons/sourcemod/configs/hostname.txt`。
+   **cfg 文件里不要写中文**，注释也不行：引擎执行 cfg 时会把中文等非 ASCII 字符当成命令结束，后面的设置会被拆散。插件包里的 cfg 都已经是纯英文。
 4. 添加管理员：编辑 `left4dead2/addons/sourcemod/configs/admins_simple.ini`，加一行
    ```
    "STEAM_1:0:12345678" "99:z"
@@ -36,6 +37,10 @@
 最省事的办法：把 `server-scripts/start_debug.sh` 放到服务器根目录，运行 `chmod +x start_debug.sh && ./start_debug.sh`。它会检查系统版本、GLIBC、32 位运行库、插件缺少的系统库、端口占用，然后启动服务器两次（先临时关闭所有插件，再正常加载插件），每次 60 秒后自动停止。装了 `gdb` 时会记录服务器停在哪里、崩在哪里。结果全部写进 `debug_<时间>.log`。端口、地图和 tickrate 会自动从同目录的 `start.sh` 读取。日志里不含 server.cfg，启动参数里的密码会被隐藏。
 
 **停在 `Network: IP ...` 这一行、地图不加载、进不去**：看前面有没有 `exec: couldn't exec valve.rc`。启动参数里的 `+map`、`+exec` 是由 `left4dead2/cfg/valve.rc` 里的 `stuffcmds` 执行的，这个文件丢了，服务器会一直空转、不加载地图。`start.sh`、`start.bat` 和 `start_debug.sh` 发现它不在时会自动补上；也可以用 steamcmd 执行 `app_update 222860 validate` 恢复。复制插件包时 `cfg` 文件夹要合并，不要整个替换。
+
+**地图能加载，但插件一个都没有（控制台提示 `Unknown command "sm_cvar"`，`sm` 命令没反应）**：检查 `left4dead2/addons/metamod/sourcemod.vdf` 在不在。MetaMod 靠这个文件加载 SourceMod，早期版本的插件包漏了它。
+
+**控制台有很多 `Unknown command`**：多半是 cfg 文件里写了中文。插件包自己的 cfg 已经改成纯英文；插件第一次启动时自动生成的 `cfg/sourcemod/l4d2_*.cfg` 注释里有中文说明，会多出几行 `Unknown command`，不影响设置。
 
 手动排查：
 
@@ -76,6 +81,7 @@
 | 管理员菜单扩展 | all4dead2 + spawn_infected_nolimit | HarryPotter | `!admin` 菜单里刷特感、刷物品、尸潮 |
 | 管理员复活 | l4d_sm_respawn | HarryPotter | `sm_respawn <玩家>` |
 | 管理员基础 | SourceMod 自带 admin / basevotes / funcommands 等 | AlliedModders | `!admin` |
+| 中文服务器名 | l4d2_hostname | 本仓库 | 名字写在 `configs/hostname.txt`，管理员 `sm_hostname_reload` |
 
 人数设置：`server.cfg` 的 `sv_maxplayers`（真人上限）和 `cfg/sourcemod/l4dmultislots.cfg` 的 `l4d_multislots_max_survivors`（生还者上限），默认都是 8。
 
