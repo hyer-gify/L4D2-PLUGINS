@@ -33,6 +33,10 @@
 
 **启动后自动退出 / 崩溃怎么排查**
 
+最省事的办法：把 `server-scripts/start_debug.sh` 放到服务器根目录，运行 `chmod +x start_debug.sh && ./start_debug.sh`。它会检查系统版本、GLIBC、32 位运行库、插件缺少的系统库，启动服务器一次并记录退出原因（装了 `gdb` 时还会记录崩溃位置），全部写进 `debug_<时间>.log`。服务器没退出就按 Ctrl+C。端口、地图和 tickrate 会自动从同目录的 `start.sh` 读取。日志里不含 server.cfg 和 rcon 密码。
+
+手动排查：
+
 1. 把 `left4dead2/addons/metamod.vdf` 改名为 `metamod.vdf.bak` 再启动，这样 MetaMod、SourceMod 和所有插件都不会加载。
    * 这样能正常启动：问题在插件包里，把文件名改回来，看下一步。
    * 这样还是退出：问题在服务器本体或启动参数，先用 steamcmd 执行 `app_update 222860 validate` 修复游戏文件。
